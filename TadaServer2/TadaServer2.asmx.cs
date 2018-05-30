@@ -25,15 +25,13 @@ namespace TadaServer2
         public string Registration(string registrationXml)
     {
         MemoryStream stream = new MemoryStream();
-        XmlTextWriter writer = new XmlTextWriter(
-          stream, System.Text.Encoding.UTF8);
+        XmlTextWriter writer = new XmlTextWriter(stream, System.Text.Encoding.UTF8);
 
         writer.Formatting = Formatting.Indented;
         writer.WriteStartDocument();
 
         // Registration Response Packet
-        writer.WriteStartElement("ProviderUpdate",
-          "urn:Microsoft.Search.Registration.Response");
+        writer.WriteStartElement("ProviderUpdate", "urn:Microsoft.Search.Registration.Response");
         writer.WriteElementString("Status", "SUCCESS");
 
         // Provider
@@ -41,10 +39,8 @@ namespace TadaServer2
         writer.WriteStartElement("Provider");
         writer.WriteElementString("Message", "TADA by FASIC");
 
-        writer.WriteElementString("Id",
-          "{C37EE888-D74E-47e5-B113-BA613D87F0B2}");
-        writer.WriteElementString("Name",
-          "TADA by FASIC");
+        writer.WriteElementString("Id", "{C37EE888-D74E-47e5-B113-BA613D87F0B2}");
+        writer.WriteElementString("Name", "TADA by FASIC");
         writer.WriteElementString("QueryPath",
           @"http://" + HttpContext.Current.Request.Url.Host + ":" +
           HttpContext.Current.Request.Url.Port.ToString() +
@@ -60,14 +56,11 @@ namespace TadaServer2
         // Services
         writer.WriteStartElement("Services");
         writer.WriteStartElement("Service");
-        writer.WriteElementString("Id",
-          "{8DD063CA-94FC-4514-8D83-3B36B12432BE}");
+        writer.WriteElementString("Id", "{8DD063CA-94FC-4514-8D83-3B36B12432BE}");
 
-        writer.WriteElementString("Name",
-          "TADA by FASIC");
+        writer.WriteElementString("Name", "TADA by FASIC");
 
-        writer.WriteElementString("Description",
-          "TADA by FASIC");
+        writer.WriteElementString("Description", "TADA by FASIC");
 
         writer.WriteElementString("Copyright", "(C) 2018");
         writer.WriteElementString("Display", "On");
@@ -87,104 +80,121 @@ namespace TadaServer2
         return result;
     }
 
-    [WebMethod]
-    public string Query(string queryXml)
-    {
-        XmlDocument xmlQuery = new XmlDocument();
-        xmlQuery.LoadXml(queryXml);
-
-        XmlNamespaceManager nm1 =
-          new XmlNamespaceManager(xmlQuery.NameTable);
-        nm1.AddNamespace("ns", "urn:Microsoft.Search.Query");
-        nm1.AddNamespace("oc",
-          "urn:Microsoft.Search.Query.Office.Context");
-        string queryString = xmlQuery.SelectSingleNode(
-          "//ns:QueryText", nm1).InnerText;
-
-        XmlNamespaceManager nm2 = new XmlNamespaceManager(
-          xmlQuery.NameTable);
-        nm2.AddNamespace("msq", "urn:Microsoft.Search.Query");
-        string domain = xmlQuery.SelectSingleNode(
-          "/msq:QueryPacket/msq:Query",
-          nm2).Attributes.GetNamedItem("domain").Value;
-        string queryId = xmlQuery.SelectSingleNode(
-          "/msq:QueryPacket/msq:Query/msq:QueryId",
-          nm2).InnerText;
-
-        MemoryStream stream = new MemoryStream();
-        XmlTextWriter writer = new XmlTextWriter(stream, null);
-        writer.Formatting = Formatting.Indented;
-
-        // Compose the Query Response packet.
-        writer.WriteStartDocument();
-        writer.WriteStartElement("ResponsePacket",
-          "urn:Microsoft.Search.Response");
-        // The providerRevision attribute can be used
-        // to update the service.
-        writer.WriteAttributeString("providerRevision", "1");
-        writer.WriteStartElement("Response");
-        // The domain attribute identifies the service 
-        // that executed the query.
-        writer.WriteAttributeString("domain", domain);
-        writer.WriteElementString("QueryID", queryId);
-
-        //TODO toto zmenit
-        var dbCon = DBConnection.Instance();
-        dbCon.DatabaseName = "tada";
-        string abbreviation = "";
-        string notes = "";
-        if (dbCon.IsConnect())
+        [WebMethod]
+        public string Query(string queryXml)
         {
-            //TODO change this query
-            string query = "SELECT explanation, notes FROM dictionary WHERE abbreviation='" + queryString + "'";
-            var cmd = new MySqlCommand(query, dbCon.Connection);
-            var dbReader = cmd.ExecuteReader();
-            while (dbReader.Read())
-            {
-                abbreviation = dbReader.GetString(0);
-                notes =dbReader.GetString(1);
-               // Console.WriteLine(someStringFromColumnZero + "," + fokume + "," + someStringFromColumnTwo);
-            }
-            dbReader.Close();
-            //dbCon.Close();
-        }
+            XmlDocument xmlQuery = new XmlDocument();
+            xmlQuery.LoadXml(queryXml);
 
-        //TODO toto zmenit
-       // if (String.Compare("aaa", queryString, true) == 0)
-        
+            XmlNamespaceManager nm1 =
+              new XmlNamespaceManager(xmlQuery.NameTable);
+            nm1.AddNamespace("ns", "urn:Microsoft.Search.Query");
+            nm1.AddNamespace("oc",
+              "urn:Microsoft.Search.Query.Office.Context");
+            string queryString = xmlQuery.SelectSingleNode(
+              "//ns:QueryText", nm1).InnerText;
+
+            XmlNamespaceManager nm2 = new XmlNamespaceManager(
+              xmlQuery.NameTable);
+            nm2.AddNamespace("msq", "urn:Microsoft.Search.Query");
+            string domain = xmlQuery.SelectSingleNode(
+              "/msq:QueryPacket/msq:Query",
+              nm2).Attributes.GetNamedItem("domain").Value;
+            string queryId = xmlQuery.SelectSingleNode(
+              "/msq:QueryPacket/msq:Query/msq:QueryId",
+              nm2).InnerText;
+
+            MemoryStream stream = new MemoryStream();
+            XmlTextWriter writer = new XmlTextWriter(stream, null);
+            writer.Formatting = Formatting.Indented;
+
+            // Compose the Query Response packet.
+            writer.WriteStartDocument();
+            writer.WriteStartElement("ResponsePacket", "urn:Microsoft.Search.Response");
+            // The providerRevision attribute can be used
+            // to update the service.
+            writer.WriteAttributeString("providerRevision", "1");
+            writer.WriteStartElement("Response");
+            // The domain attribute identifies the service 
+            // that executed the query.
+            writer.WriteAttributeString("domain", domain);
+            writer.WriteElementString("QueryID", queryId);
+
+            var dbCon = DBConnection.Instance();
+            dbCon.DatabaseName = "tada";
+            string explanation = "Not found";
+            string notes = "";
+            if (dbCon.IsConnect())
+            {
+                //TODO change this query
+                string query = "SELECT explanation, notes FROM dictionary WHERE status='confirmed' AND abbreviation='" + queryString + "'";
+                var cmd = new MySqlCommand(query, dbCon.Connection);
+                var dbReader = cmd.ExecuteReader();
+                while (dbReader.Read())
+                {
+                    if (!dbReader.IsDBNull(0))
+                    {
+                        explanation = dbReader.GetString(0);
+                    }
+
+                    if (!dbReader.IsDBNull(1))
+                    {
+                        notes = dbReader.GetString(1);
+                    }
+                }
+                dbReader.Close();
+                //REMOVEEEEEEEEE
+               // dbCon.Close();
+            }
+
             writer.WriteStartElement("Range");
             writer.WriteStartElement("Results");
 
-
             // Begin Content element
-            writer.WriteStartElement("Content",
-              "urn:Microsoft.Search.Response.Content");
+            writer.WriteStartElement("Content", "urn:Microsoft.Search.Response.Content");
+            
             writer.WriteStartElement("HorizontalRule");
             writer.WriteEndElement(); //Horizontal rule
-            writer.WriteElementString("P", abbreviation);
-            writer.WriteStartElement("HorizontalRule");
-            writer.WriteEndElement(); //Horizontal rule
-            writer.WriteElementString("P", notes);
+            writer.WriteElementString("P", explanation);
+            if (!explanation.Equals("Not found"))
+            {
+                writer.WriteStartElement("HorizontalRule");
+                writer.WriteEndElement(); //Horizontal rule
+                writer.WriteElementString("P", notes);
+            }
             writer.WriteStartElement("HorizontalRule");
             writer.WriteEndElement(); //Horizontal rule
             writer.WriteEndElement(); //Content
 
+            writer.WriteStartElement("Document", "urn:Microsoft.Search.Response.Document");
+            writer.WriteElementString("Title", "Search on web");
+            writer.WriteStartElement("Action");
+            writer.WriteStartElement("LinkUrl");
+            writer.WriteAttributeString("fileExt", "htm");
+            writer.WriteString("http://localhost:8080/");
+            writer.WriteEndElement(); //LinkUrl
+            writer.WriteEndElement(); //Action
+            writer.WriteElementString("DisplayUrl", "TADA Website");
+            writer.WriteEndElement(); //Document
+            writer.WriteStartElement("HorizontalRule");
+            writer.WriteEndElement(); //Horizontal rule
+            
             // Finish up.
             writer.WriteEndElement(); //Results
             writer.WriteEndElement(); //Range
         
-        writer.WriteElementString("Status", "SUCCESS");
-        writer.WriteEndElement(); //Response
-        writer.WriteEndElement(); //ResponsePacket
-        writer.WriteEndDocument();
+            writer.WriteElementString("Status", "SUCCESS");
+            writer.WriteEndElement(); //Response
+            writer.WriteEndElement(); //ResponsePacket
+            writer.WriteEndDocument();
 
-        writer.Flush();
+            writer.Flush();
 
-        // Move the results into a string.
-        stream.Position = 0;
-        StreamReader reader = new StreamReader(stream);
-        string result = reader.ReadToEnd();
-        return result;
+            // Move the results into a string.
+            stream.Position = 0;
+            StreamReader reader = new StreamReader(stream);
+            string result = reader.ReadToEnd();
+            return result;
+        }
     }
-}
 }
