@@ -6,6 +6,8 @@ using System.Web.Services.Protocols;
 using System.Xml;
 using System.IO;
 using System.Web.Util;
+using MySql.Data;
+using MySql.Data.MySqlClient;
 
 namespace TadaServer2
 {
@@ -125,8 +127,27 @@ namespace TadaServer2
         // that executed the query.
         writer.WriteAttributeString("domain", domain);
         writer.WriteElementString("QueryID", queryId);
-            //todo toto zmenit
-        if (String.Compare("aaa", queryString, true) == 0)
+
+            //TODO toto zmenit
+            var dbCon = DBConnection.Instance();
+            dbCon.DatabaseName = "tada";
+            if (dbCon.IsConnect())
+            {
+                //TODO change this query
+                string query = "SELECT col0,col1 FROM YourTable";
+                var cmd = new MySqlCommand(query, dbCon.Connection);
+                var dbReader = cmd.ExecuteReader();
+                while (dbReader.Read())
+                {
+                    string someStringFromColumnZero = dbReader.GetString(0);
+                    string someStringFromColumnOne =dbReader.GetString(1);
+                    Console.WriteLine(someStringFromColumnZero + "," + someStringFromColumnOne);
+                }
+                dbCon.Close();
+            }
+
+            //TODO toto zmenit
+            if (String.Compare("aaa", queryString, true) == 0)
         {
             writer.WriteStartElement("Range");
             writer.WriteStartElement("Results");
