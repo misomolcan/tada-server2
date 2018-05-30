@@ -128,27 +128,30 @@ namespace TadaServer2
         writer.WriteAttributeString("domain", domain);
         writer.WriteElementString("QueryID", queryId);
 
-            //TODO toto zmenit
-            var dbCon = DBConnection.Instance();
-            dbCon.DatabaseName = "tada";
-            if (dbCon.IsConnect())
-            {
-                //TODO change this query
-                string query = "SELECT col0,col1 FROM YourTable";
-                var cmd = new MySqlCommand(query, dbCon.Connection);
-                var dbReader = cmd.ExecuteReader();
-                while (dbReader.Read())
-                {
-                    string someStringFromColumnZero = dbReader.GetString(0);
-                    string someStringFromColumnOne =dbReader.GetString(1);
-                    Console.WriteLine(someStringFromColumnZero + "," + someStringFromColumnOne);
-                }
-                dbCon.Close();
-            }
-
-            //TODO toto zmenit
-            if (String.Compare("aaa", queryString, true) == 0)
+        //TODO toto zmenit
+        var dbCon = DBConnection.Instance();
+        dbCon.DatabaseName = "tada";
+        string abbreviation = "";
+        string notes = "";
+        if (dbCon.IsConnect())
         {
+            //TODO change this query
+            string query = "SELECT explanation, notes FROM dictionary WHERE abbreviation='" + queryString + "'";
+            var cmd = new MySqlCommand(query, dbCon.Connection);
+            var dbReader = cmd.ExecuteReader();
+            while (dbReader.Read())
+            {
+                abbreviation = dbReader.GetString(0);
+                notes =dbReader.GetString(1);
+               // Console.WriteLine(someStringFromColumnZero + "," + fokume + "," + someStringFromColumnTwo);
+            }
+            dbReader.Close();
+            //dbCon.Close();
+        }
+
+        //TODO toto zmenit
+       // if (String.Compare("aaa", queryString, true) == 0)
+        
             writer.WriteStartElement("Range");
             writer.WriteStartElement("Results");
 
@@ -158,8 +161,10 @@ namespace TadaServer2
               "urn:Microsoft.Search.Response.Content");
             writer.WriteStartElement("HorizontalRule");
             writer.WriteEndElement(); //Horizontal rule
-            writer.WriteElementString("P",
-              "FOKU MEEEEE");
+            writer.WriteElementString("P", abbreviation);
+            writer.WriteStartElement("HorizontalRule");
+            writer.WriteEndElement(); //Horizontal rule
+            writer.WriteElementString("P", notes);
             writer.WriteStartElement("HorizontalRule");
             writer.WriteEndElement(); //Horizontal rule
             writer.WriteEndElement(); //Content
@@ -167,7 +172,7 @@ namespace TadaServer2
             // Finish up.
             writer.WriteEndElement(); //Results
             writer.WriteEndElement(); //Range
-        }
+        
         writer.WriteElementString("Status", "SUCCESS");
         writer.WriteEndElement(); //Response
         writer.WriteEndElement(); //ResponsePacket

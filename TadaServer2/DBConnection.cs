@@ -42,13 +42,13 @@ namespace TadaServer2
                     return false;
                 //TODO CHECK THIS
                 MySqlConnectionStringBuilder conn_string = new MySqlConnectionStringBuilder();
-                conn_string.Server = "192.168.20.172:3306";
+                conn_string.Server = "192.168.20.172";
+                conn_string.Database = "tada";
                 conn_string.UserID = "tada";
                 conn_string.Password = "pondelok";
-                conn_string.Database = "tada";
-                string connstring = conn_string.ToString();
-             //   string connstring = string.Format("Server=192.168.20.172:3306; database=tada; UID=tada; password=pondelok", databaseName);
-                connection = new MySqlConnection(connstring);
+                conn_string.SslMode = MySqlSslMode.None;
+                //string connstring = string.Format("Server=192.168.20.172:3306; database=tada; UID=tada; password=pondelok", databaseName);
+                connection = new MySqlConnection(conn_string.ToString());
                 connection.Open();
             }
 
