@@ -156,7 +156,7 @@ namespace TadaServer2
             writer.WriteStartElement("HorizontalRule");
             writer.WriteEndElement(); //Horizontal rule
             writer.WriteElementString("P", explanation);
-            if (!explanation.Equals("Not found"))
+            if (!notes.Equals(""))
             {
                 writer.WriteStartElement("HorizontalRule");
                 writer.WriteEndElement(); //Horizontal rule
